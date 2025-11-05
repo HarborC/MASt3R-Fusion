@@ -8,7 +8,7 @@ import numpy as np
 import math
 
 # 定义输出文件夹
-output_dir = "/home/gpcv/Data4/Datasets/temp/wbl/output1"
+output_dir = "/home/gpcv/Downloads/"
 imu_file = os.path.join(output_dir, "imu_data.txt")
 camera1_dir = os.path.join(output_dir, "usb_cam")
 camera2_dir = os.path.join(output_dir, "thermal_camera")
@@ -22,7 +22,7 @@ os.makedirs(camera2_dir, exist_ok=True)
 bridge = CvBridge()
 
 # 打开ROS bag文件
-bag = rosbag.Bag('/home/gpcv/Data4/Datasets/temp/wbl/output1/data.bag')
+bag = rosbag.Bag('/home/gpcv/Downloads/data1_odom_cloud.bag')
 
 G = 9.81
 
@@ -49,23 +49,23 @@ with open(imu_file, 'w') as imu_f:
             imu_f.write(f"{msg.header.stamp.to_sec()} {msg.angular_velocity.x* 180/math.pi} {msg.angular_velocity.y* 180/math.pi} {msg.angular_velocity.z* 180/math.pi} "
                         f"{msg.linear_acceleration.x} {msg.linear_acceleration.y} {msg.linear_acceleration.z}\n")
 
-        # elif topic == "/camera/color/image_raw/compressed":  # 替换为你的第一个相机话题名称
-        #     if msg._type == "sensor_msgs/CompressedImage":
-        #         # 将压缩图像数据转换为 OpenCV 图像
-        #         cv_image = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
-        #         # 保存图像，文件名使用时间戳
-        #         image_filename = os.path.join(camera1_dir, f"{msg.header.stamp.to_sec()}.png")
-        #         cv2.imwrite(image_filename, cv_image)
+        elif topic == "/camera/color/image_raw/compressed":  # 替换为你的第一个相机话题名称
+            if msg._type == "sensor_msgs/CompressedImage":
+                # 将压缩图像数据转换为 OpenCV 图像
+                cv_image = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
+                # 保存图像，文件名使用时间戳
+                image_filename = os.path.join(camera1_dir, f"{msg.header.stamp.to_sec()}.png")
+                cv2.imwrite(image_filename, cv_image)
 
-        # elif topic == "/iray/thermal_img":  # 替换为你的第二个相机话题名称
-        #     # 转换图像消息为OpenCV格式
-        #     cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
-        #     # 判断图像是否是黑图(95%的像素值为0)
-        #     if np.count_nonzero(cv_image) < 0.05 * cv_image.size:
-        #         continue
-        #     # 保存图像，文件名使用时间戳
-        #     image_filename = os.path.join(camera2_dir, f"{msg.header.stamp.to_sec()}.png")
-        #     cv2.imwrite(image_filename, cv_image)
+        elif topic == "/iray/thermal_img":  # 替换为你的第二个相机话题名称
+            # 转换图像消息为OpenCV格式
+            cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
+            # 判断图像是否是黑图(95%的像素值为0)
+            if np.count_nonzero(cv_image) < 0.05 * cv_image.size:
+                continue
+            # 保存图像，文件名使用时间戳
+            image_filename = os.path.join(camera2_dir, f"{msg.header.stamp.to_sec()}.png")
+            cv2.imwrite(image_filename, cv_image)
 
 generate_timestamp_file(camera2_dir, os.path.join(output_dir, "thermal_camera_timestamp.txt"))
 generate_timestamp_file(camera2_dir, os.path.join(output_dir, "usb_camera_timestamp.txt"))
