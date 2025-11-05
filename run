@@ -1,0 +1,5 @@
+#hw
+python main.py --dataset "/home/gpcv/Data4/Datasets/temp/wbl/output1/thermal_camera" --config "/home/gpcv/Data4/projects/SLAM/DSLAM/DROID/MASt3R-Fusion/config/base_wbl.yaml" --calib "/home/gpcv/Data4/projects/SLAM/DSLAM/DROID/MASt3R-Fusion/config/intrinsics_wbl.yaml" --imu_path "/home/gpcv/Data4/Datasets/temp/wbl/output1/imu_data.txt" --imu_dt 0 --stamp_path "/home/gpcv/Data4/Datasets/temp/wbl/output1/thermal_camera_timestamp.txt" --result_path "result.txt" --save_h5
+
+# TUMVI
+python main.py --dataset /home/gpcv/Data4/projects/SLAM/DSLAM/DROID/MASt3R-Fusion/datasets/tum_vi/dataset-outdoors1_512_16/kitti360/cam0_data --config config/base_tumvi.yaml --calib config/intrinsics_tumvi.yaml --imu_path /home/gpcv/Data4/projects/SLAM/DSLAM/DROID/MASt3R-Fusion/datasets/tum_vi/dataset-outdoors1_512_16/kitti360/imu_data.txt --imu_dt 0 --stamp_path /home/gpcv/Data4/projects/SLAM/DSLAM/DROID/MASt3R-Fusion/datasets/tum_vi/dataset-outdoors1_512_16/kitti360/cam0_timestamp.txt --result_path result_tumvi.txt --save_h5
