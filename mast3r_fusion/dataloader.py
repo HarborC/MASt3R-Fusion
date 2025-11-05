@@ -37,7 +37,8 @@ class MonocularDataset(torch.utils.data.Dataset):
 
     def read_img(self, idx):
         print(time.time())
-        img = cv2.imread(self.rgb_files[idx])
+        print(self.rgb_files[idx])
+        img = cv2.imread(str(self.rgb_files[idx]))
         print('[INFO] data load,',time.time())
         return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
@@ -357,6 +358,20 @@ class Intrinsics:
         # K_opt[0,0] = 900
         # K_opt[1,1] = 900
                 return Intrinsics(img_size, W, H, K, K_opt, D, mapx, mapy)
+        elif model == 'fisheye':
+            fx, fy, cx, cy = calib[:4]
+            distortion = np.array(calib[4:])
+            K = np.array([[fx, 0.0, cx], [0.0, fy, cy], [0.0, 0.0, 1.0]])
+            K_opt = np.eye(3)
+            K_opt[0,0] = fx*scale
+            K_opt[0,2] = cx 
+            K_opt[1,1] = fy*scale
+            K_opt[1,2] = cy
+            mapx, mapy = cv2.fisheye.initUndistortRectifyMap(
+                K, distortion, np.eye(3), K_opt, (W, H), cv2.CV_32FC1
+            )
+            D = distortion
+            return Intrinsics(img_size, W, H, K, K_opt, D, mapx, mapy)
 
 
 def load_dataset(dataset_path,stamp_path = None):
