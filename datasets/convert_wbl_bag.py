@@ -41,34 +41,42 @@ def generate_timestamp_file(image_dir, output_file, extensions=('.png', '.jpg', 
                 f.write(f"{name_without_ext} {filename}\n")
 
 # 打开IMU文件
-with open(imu_file, 'w') as imu_f:
-    # 遍历bag文件中的消息
-    for topic, msg, t in bag.read_messages():
-        if topic == "/livox/imu":  # 替换为你的IMU话题名称
-            # 写入IMU数据
-            imu_f.write(f"{msg.header.stamp.to_sec()} {msg.angular_velocity.x* 180/math.pi} {msg.angular_velocity.y* 180/math.pi} {msg.angular_velocity.z* 180/math.pi} "
-                        f"{msg.linear_acceleration.x} {msg.linear_acceleration.y} {msg.linear_acceleration.z}\n")
+imu_f = open(imu_file, 'w')
+pose_f = open(os.path.join(output_dir, "odometry_data.txt"), 'w')
 
-        elif topic == "/camera/color/image_raw/compressed":  # 替换为你的第一个相机话题名称
-            if msg._type == "sensor_msgs/CompressedImage":
-                # 将压缩图像数据转换为 OpenCV 图像
-                cv_image = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
-                # 保存图像，文件名使用时间戳
-                image_filename = os.path.join(camera1_dir, f"{msg.header.stamp.to_sec()}.png")
-                cv2.imwrite(image_filename, cv_image)
+for topic, msg, t in bag.read_messages():
+    if topic == "/livox/imu":  # 替换为你的IMU话题名称
+        # 写入IMU数据
+        imu_f.write(f"{msg.header.stamp.to_sec()} {msg.angular_velocity.x* 180/math.pi} {msg.angular_velocity.y* 180/math.pi} {msg.angular_velocity.z* 180/math.pi} "
+                    f"{msg.linear_acceleration.x} {msg.linear_acceleration.y} {msg.linear_acceleration.z}\n")
 
-        elif topic == "/iray/thermal_img":  # 替换为你的第二个相机话题名称
-            # 转换图像消息为OpenCV格式
-            cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
-            # 判断图像是否是黑图(95%的像素值为0)
-            if np.count_nonzero(cv_image) < 0.05 * cv_image.size:
-                continue
+    elif topic == "/camera/color/image_raw/compressed":  # 替换为你的第一个相机话题名称
+        if msg._type == "sensor_msgs/CompressedImage":
+            # 将压缩图像数据转换为 OpenCV 图像
+            cv_image = bridge.compressed_imgmsg_to_cv2(msg, desired_encoding="passthrough")
             # 保存图像，文件名使用时间戳
-            image_filename = os.path.join(camera2_dir, f"{msg.header.stamp.to_sec()}.png")
+            image_filename = os.path.join(camera1_dir, f"{msg.header.stamp.to_sec()}.png")
             cv2.imwrite(image_filename, cv_image)
 
+    elif topic == "/iray/thermal_img":  # 替换为你的第二个相机话题名称
+        # 转换图像消息为OpenCV格式
+        cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
+        # 判断图像是否是黑图(95%的像素值为0)
+        if np.count_nonzero(cv_image) < 0.05 * cv_image.size:
+            continue
+        # 保存图像，文件名使用时间戳
+        image_filename = os.path.join(camera2_dir, f"{msg.header.stamp.to_sec()}.png")
+        cv2.imwrite(image_filename, cv_image)
+    elif topic == "/Odometry":  # 替换为你的第三个相机话题名称
+        if msg._type == "nav_msgs/Odometry":
+            # 写入里程计数据
+            pose_f.write(f"{msg.header.stamp.to_sec()} "
+                         f"{msg.pose.pose.position.x} {msg.pose.pose.position.y} {msg.pose.pose.position.z} "
+                         f"{msg.pose.pose.orientation.x} {msg.pose.pose.orientation.y} {msg.pose.pose.orientation.z} {msg.pose.pose.orientation.w}\n")
+                
+
 generate_timestamp_file(camera2_dir, os.path.join(output_dir, "thermal_camera_timestamp.txt"))
-generate_timestamp_file(camera2_dir, os.path.join(output_dir, "usb_camera_timestamp.txt"))
+generate_timestamp_file(camera1_dir, os.path.join(output_dir, "usb_camera_timestamp.txt"))
 
 # 关闭bag文件
 bag.close()
